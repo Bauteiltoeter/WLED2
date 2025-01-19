@@ -10,6 +10,32 @@
 
   </p>
 
+# Why this fork exists
+
+This branch adds support for the KSZ8863 Ethernet Phy.
+This has an integrated ethernet switch, making it possible to build WLED devices with two ethernet ports.
+
+With this feature you can dasy-chain multiple WLED devices.
+
+## I2C
+The communication between ESP32 and Phy uses I2C in other tasks!
+Using wire.h to communicate with custom I2C devices will most likely interfere with the Phy communication!
+
+## Hardware
+Connect the KSZ8863 to your ESP32 as following:
+
+ESP32 -> KSZ8863
+IO0   -> REFCLKI_3 (23) & REFCLKO_3 (17)
+IO21  -> CRS_DV (16)
+IO27  -> TX_EN  (25)
+IO25  -> TXD0   (29)
+IO26  -> TXD1   (28)
+IO19  -> RXD0   (20)
+IO22  -> RXD1   (19)
+IO14  -> SCL    (36)
+IO15  -> SDA    (37)
+
+
 # Welcome to my project WLED! ✨
 
 A fast and feature-rich implementation of an ESP32 and ESP8266 webserver to control NeoPixel (WS2812B, WS2811, SK6812) LEDs or also SPI based chipsets like the WS2801 and APA102!
