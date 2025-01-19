@@ -12,28 +12,13 @@
 
 # Why this fork exists
 
-This branch adds support for the KSZ8863 Ethernet Phy.
-This has an integrated ethernet switch, making it possible to build WLED devices with two ethernet ports.
+This for includes all features used for the Cyberlamp hardware.
+It's based on the branch ksz8863_support to add support for the Ethernet Phy.
+It also activates a usermod for PWM fan control. 
 
-With this feature you can dasy-chain multiple WLED devices.
+Goto Settings -> Usermods and set Temperature Pin 33 and PWM Pin 32.
 
-## I2C
-The communication between ESP32 and Phy uses I2C in other tasks!
-Using wire.h to communicate with custom I2C devices will most likely interfere with the Phy communication!
 
-## Hardware
-Connect the KSZ8863 to your ESP32 as following:
-
-ESP32 -> KSZ8863
-IO0   -> REFCLKI_3 (23) & REFCLKO_3 (17)
-IO21  -> CRS_DV (16)
-IO27  -> TX_EN  (25)
-IO25  -> TXD0   (29)
-IO26  -> TXD1   (28)
-IO19  -> RXD0   (20)
-IO22  -> RXD1   (19)
-IO14  -> SCL    (36)
-IO15  -> SDA    (37)
 
 
 # Welcome to my project WLED! ✨
