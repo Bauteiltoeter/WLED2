@@ -144,6 +144,15 @@ const ethernet_settings ethernetBoards[] = {
     18,			              // eth_mdio,
     ETH_PHY_LAN8720,      // eth_type,
     ETH_CLOCK_GPIO0_OUT	// eth_clk_mode
+  },
+  //KSZ8863
+  { 
+    1,
+    -1,
+    14,
+    15,
+    ETH_PHY_KSZ8863,
+    ETH_CLOCK_GPIO0_IN
   }
 };
 
