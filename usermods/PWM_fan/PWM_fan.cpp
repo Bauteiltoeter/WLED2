@@ -59,11 +59,17 @@ class PWMFanUsermod : public Usermod {
     uint8_t maxPWMValuePct    = 100;
     uint8_t numberOfInterrupsInOneSingleRotation = 2;     // Number of interrupts ESP32 sees on tacho signal on a single fan rotation. All the fans I've seen trigger two interrups.
     uint8_t pwmValuePct       = 0;
+    uint8_t currentPwmValue   = 0;
+    uint8_t currentStep = 0;
+
 
     // constant values
     static const uint8_t _pwmMaxValue     = 255;
     static const uint8_t _pwmMaxStepCount = 7;
-    float _pwmTempStepSize = 0.5f;
+    uint8_t stepsPct[_pwmMaxStepCount] = { 3, 5, 10, 15, 20, 50, 100 };
+
+    float _pwmTempStepSize = 2.0f;
+
 
     // strings to reduce flash memory usage (used more than twice)
     static const char _name[];
@@ -149,7 +155,7 @@ class PWMFanUsermod : public Usermod {
 
     void updateFanSpeed(uint8_t pwmValue){
       if (!enabled || pwmPin < 0) return;
-
+      currentPwmValue = pwmValue;
       #ifdef ESP8266
       analogWrite(pwmPin, pwmValue);
       #else
@@ -168,14 +174,38 @@ class PWMFanUsermod : public Usermod {
     void setFanPWMbasedOnTemperature(void) {
       float temp = getActualTemperature();
       // dividing minPercent and maxPercent into equal pwmvalue sizes
-      int pwmStepSize = ((maxPWMValuePct - minPWMValuePct) * _pwmMaxValue) / (_pwmMaxStepCount*100);
-      int pwmStep = calculatePwmStep(temp - targetTemperature);
-      // minimum based on full speed - not entered MaxPercent 
-      int pwmMinimumValue = (minPWMValuePct * _pwmMaxValue) / 100;
-      updateFanSpeed(pwmMinimumValue + pwmStep*pwmStepSize);
+      //int pwmStepSize = ((maxPWMValuePct - minPWMValuePct) * _pwmMaxValue) / (_pwmMaxStepCount*100);
+  
+      int pwm;
+
+
+      if ((temp == NAN) || (temp < 0) || (temp > 100)) {
+        DEBUG_PRINTLN(F("WARNING: no temperature value available. Cannot do temperature control. Will set PWM fan to 255."));
+        pwm = 100;
+      }
+      else
+      {
+
+        int pwmStep = calculatePwmStep(temp - targetTemperature);
+        currentStep = pwmStep;
+        // minimum based on full speed - not entered MaxPercent 
+
+        pwm = stepsPct[pwmStep];
+
+        if(pwm > maxPWMValuePct)
+          pwm = maxPWMValuePct;
+
+        if(pwm < minPWMValuePct)
+          pwm = minPWMValuePct;
+
+      }
+      
+      updateFanSpeed( pwm * (255.0/100.0));
+
     }
 
     uint8_t calculatePwmStep(float diffTemp){
+      DEBUG_PRINTF("CalcualtePwmStep: %f", diffTemp);
       if ((diffTemp == NAN) || (diffTemp <= -100.0)) {
         DEBUG_PRINTLN(F("WARNING: no temperature value available. Cannot do temperature control. Will set PWM fan to 255."));
         return _pwmMaxStepCount;
@@ -184,6 +214,7 @@ class PWMFanUsermod : public Usermod {
         return 0;
       }
       int calculatedStep = (diffTemp / _pwmTempStepSize)+1;
+      DEBUG_PRINTF("Calculated PWM Step: %d", calculatedStep);
       // anything greater than max stepcount gets max 
       return (uint8_t)min((int)_pwmMaxStepCount,calculatedStep);      
     }
@@ -259,8 +290,17 @@ class PWMFanUsermod : public Usermod {
           data.add(last_rpm);
           data.add(F("rpm"));
         } else {
-          if (lockFan) data.add(F("locked"));
-          else         data.add(F("auto"));
+          if (lockFan)
+          {
+            String str = "Fixed, PWM: " + String(currentPwmValue);
+            data.add(str);
+          }
+          else
+          {
+            String str="auto, Step: " + String(currentStep) + " PWM: " + String(currentPwmValue);
+            data.add(str );
+          }
+
         }
       }
     }
@@ -286,7 +326,7 @@ class PWMFanUsermod : public Usermod {
         }
         if (enabled && !usermod[FPSTR(_speed)].isNull() && usermod[FPSTR(_speed)].is<int>()) {
           pwmValuePct = usermod[FPSTR(_speed)].as<int>();
-          updateFanSpeed((constrain(pwmValuePct,0,100) * 255) / 100);
+          updateFanSpeed((constrain(pwmValuePct,2,100) * 255) / 100);
           if (pwmValuePct) lockFan = true;
         }
         if (enabled && !usermod[FPSTR(_lock)].isNull() && usermod[FPSTR(_lock)].is<bool>()) {
