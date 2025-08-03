@@ -44,6 +44,9 @@ class PWMFanUsermod : public Usermod {
     #endif
     bool lockFan = false;
 
+    int errorCounter=0;
+    const int maxErrorCounter = 4;
+
     #ifdef USERMOD_DALLASTEMPERATURE
     UsermodTemperature* tempUM;
     #elif defined(USERMOD_SHT)
@@ -185,18 +188,26 @@ class PWMFanUsermod : public Usermod {
       }
       else
       {
+        bool pwmError;
+        int pwmStep = calculatePwmStep(temp - targetTemperature, pwmError);
 
-        int pwmStep = calculatePwmStep(temp - targetTemperature);
-        currentStep = pwmStep;
-        // minimum based on full speed - not entered MaxPercent 
+        if(pwmError)
+        {
+          pwm = 255;
+        }
+        else
+        {
+          currentStep = pwmStep;
+          // minimum based on full speed - not entered MaxPercent 
 
-        pwm = stepsPct[pwmStep];
+          pwm = stepsPct[pwmStep];
 
-        if(pwm > maxPWMValuePct)
-          pwm = maxPWMValuePct;
+          if(pwm > maxPWMValuePct)
+            pwm = maxPWMValuePct;
 
-        if(pwm < minPWMValuePct)
-          pwm = minPWMValuePct;
+          if(pwm < minPWMValuePct)
+            pwm = minPWMValuePct;
+        }
 
       }
       
@@ -204,9 +215,11 @@ class PWMFanUsermod : public Usermod {
 
     }
 
-    uint8_t calculatePwmStep(float diffTemp){
+    uint8_t calculatePwmStep(float diffTemp, bool& error){
+      error=false;
       DEBUG_PRINTF("CalcualtePwmStep: %f", diffTemp);
       if ((diffTemp == NAN) || (diffTemp <= -100.0)) {
+        error=true;
         DEBUG_PRINTLN(F("WARNING: no temperature value available. Cannot do temperature control. Will set PWM fan to 255."));
         return _pwmMaxStepCount;
       }
@@ -217,6 +230,29 @@ class PWMFanUsermod : public Usermod {
       DEBUG_PRINTF("Calculated PWM Step: %d", calculatedStep);
       // anything greater than max stepcount gets max 
       return (uint8_t)min((int)_pwmMaxStepCount,calculatedStep);      
+    }
+
+    void checkOvertemperature()
+    {
+      float temp = getActualTemperature();
+
+      if(temp > 16)
+      {
+        if(errorCounter < maxErrorCounter)
+        {
+          errorCounter++;
+        }
+        else
+        {
+          bri = 0;
+          stateUpdated(CALL_MODE_DIRECT_CHANGE);
+        }
+      }
+      else
+      {
+        errorCounter=0;
+      }
+
     }
 
   public:
@@ -251,6 +287,10 @@ class PWMFanUsermod : public Usermod {
 
       updateTacho();
       if (!lockFan) setFanPWMbasedOnTemperature();
+
+
+      checkOvertemperature();
+
     }
 
     /*
@@ -299,6 +339,20 @@ class PWMFanUsermod : public Usermod {
           {
             String str="auto, Step: " + String(currentStep) + " PWM: " + String(currentPwmValue);
             data.add(str );
+          }
+
+          if(errorCounter > 0)
+          {
+            String str;
+            if(errorCounter <= maxErrorCounter)
+            {
+              str = ", Overtemperature " + String(errorCounter);
+            }
+            else
+            {
+              str = " Overtemperatur, LEDs off!";
+            }
+            data.add(str);
           }
 
         }
