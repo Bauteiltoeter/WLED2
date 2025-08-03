@@ -236,7 +236,7 @@ class PWMFanUsermod : public Usermod {
     {
       float temp = getActualTemperature();
 
-      if(temp > 16)
+      if(temp > 50)
       {
         if(errorCounter < maxErrorCounter)
         {
@@ -344,7 +344,7 @@ class PWMFanUsermod : public Usermod {
           if(errorCounter > 0)
           {
             String str;
-            if(errorCounter <= maxErrorCounter)
+            if(errorCounter < maxErrorCounter-1)
             {
               str = ", Overtemperature " + String(errorCounter);
             }
