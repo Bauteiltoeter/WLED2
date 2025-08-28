@@ -19,6 +19,8 @@ extern "C" void usePWMFixedNMI();
 
 WLED::WLED()
 {
+  for(int i= 0; i < 10; i++)
+    uint8_t* lost = new uint8_t[5000];
 }
 
 // turns all LEDs off and restarts ESP
@@ -613,6 +615,7 @@ void WLED::initAP(bool resetAP)
 
 void WLED::initConnection()
 {
+
   DEBUG_PRINTF_P(PSTR("initConnection() called @ %lus.\n"), millis()/1000);
   #ifdef WLED_ENABLE_WEBSOCKETS
   ws.onEvent(wsEvent);
@@ -719,17 +722,17 @@ void WLED::initInterfaces()
 #endif
 
   // Set up mDNS responder:
-  if (strlen(cmDNS) > 0) {
-    // "end" must be called before "begin" is called a 2nd time
-    // see https://github.com/esp8266/Arduino/issues/7213
-    MDNS.end();
-    MDNS.begin(cmDNS);
+  // if (strlen(cmDNS) > 0) {
+  //   // "end" must be called before "begin" is called a 2nd time
+  //   // see https://github.com/esp8266/Arduino/issues/7213
+  //   MDNS.end();
+  //   MDNS.begin(cmDNS);
 
-    DEBUG_PRINTLN(F("mDNS started"));
-    MDNS.addService("http", "tcp", 80);
-    MDNS.addService("wled", "tcp", 80);
-    MDNS.addServiceTxt("wled", "tcp", "mac", escapedMac.c_str());
-  }
+  //   DEBUG_PRINTLN(F("mDNS started"));
+  //   MDNS.addService("http", "tcp", 80);
+  //   MDNS.addService("wled", "tcp", 80);
+  //   MDNS.addServiceTxt("wled", "tcp", "mac", escapedMac.c_str());
+  // }
   server.begin();
 
   if (udpPort > 0 && udpPort != ntpLocalPort) {

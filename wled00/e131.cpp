@@ -119,6 +119,11 @@ void handleE131Packet(e131_packet_t* p, IPAddress clientIP, byte protocol){
   handleDMXData(uni, dmxChannels, e131_data, mde, previousUniverses);
 }
 
+// void handleDMXData_single_rgb()
+// {
+
+// }
+
 void handleDMXData(uint16_t uni, uint16_t dmxChannels, uint8_t* e131_data, uint8_t mde, uint8_t previousUniverses) {
   byte wChannel = 0;
   unsigned totalLen = strip.getLengthTotal();
