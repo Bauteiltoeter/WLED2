@@ -757,6 +757,16 @@ void WLED::handleConnection()
   #ifdef WLED_DEBUG
   const unsigned long nowS = now/1000;
   #endif
+
+  static unsigned long ethStateTime=0;
+
+  if ( now - ethStateTime > 500)
+  {
+    ethStateTime = now;
+    Network.updateEthState();
+  }
+  
+
   const bool wifiConfigured = WLED_WIFI_CONFIGURED;
 
   // ignore connection handling if WiFi is configured and scan still running
