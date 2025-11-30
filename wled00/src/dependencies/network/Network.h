@@ -17,6 +17,10 @@ public:
   void localMAC(uint8_t* MAC);
   bool isConnected();
   bool isEthernet();
+
+  void updateEthState();
+private:
+  bool ethConnected_ = false;
 };
 
 extern NetworkClass Network;

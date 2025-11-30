@@ -79,9 +79,16 @@ bool NetworkClass::isConnected()
 bool NetworkClass::isEthernet()
 {
 #if defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_ETHERNET)
-  return (ETH.localIP()[0] != 0) && ETH.linkUp();
+  return (ETH.localIP()[0] != 0) && ethConnected_;
 #endif
   return false;
+}
+
+void NetworkClass::updateEthState()
+{
+#if defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_ETHERNET)
+  ethConnected_ = ETH.linkUp();
+#endif
 }
 
 NetworkClass Network;
