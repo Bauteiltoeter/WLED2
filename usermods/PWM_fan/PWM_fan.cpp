@@ -69,7 +69,7 @@ class PWMFanUsermod : public Usermod {
     // constant values
     static const uint8_t _pwmMaxValue     = 255;
     static const uint8_t _pwmMaxStepCount = 7;
-    uint8_t stepsPct[_pwmMaxStepCount] = { 3, 5, 10, 15, 20, 50, 100 };
+    uint8_t stepsPct[_pwmMaxStepCount] = { 5, 6, 7, 10, 15, 30, 100 };
 
     float _pwmTempStepSize = 2.0f;
 
